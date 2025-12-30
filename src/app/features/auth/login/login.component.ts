@@ -43,8 +43,21 @@ export class LoginComponent {
     this.authService.login(loginData).subscribe({
       next: (response) => {
         if (response.success) {
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-          this.router.navigate([returnUrl]);
+          // Check if user is admin and redirect accordingly
+          const user = this.authService.getCurrentUser();
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+          
+          if (returnUrl) {
+            // If there's a return URL, use it
+            this.router.navigate([returnUrl]);
+          } else if (user?.role === 'Admin') {
+            // Admin users can be redirected to admin dashboard or admin-register
+            // For now, redirect to admin-register (you can change this to admin dashboard)
+            this.router.navigate(['/auth/admin-register']);
+          } else {
+            // Regular users go to home/dashboard
+            this.router.navigate(['/']);
+          }
         } else {
           this.errorMessage = response.message || 'Login failed';
         }

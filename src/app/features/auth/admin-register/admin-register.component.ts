@@ -6,13 +6,13 @@ import { AuthService } from '../../../core/services/auth.service';
 import { RegisterRequest, UserRole } from '../../../core/models/user.model';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-admin-register',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './register.component.html',
-  styleUrl: './register.component.scss'
+  templateUrl: './admin-register.component.html',
+  styleUrl: './admin-register.component.scss'
 })
-export class RegisterComponent {
+export class AdminRegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -21,16 +21,17 @@ export class RegisterComponent {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+  // Only Admin and Seller roles available for admin registration
+  roles = [UserRole.Admin, UserRole.Seller, UserRole.Customer];
 
   constructor() {
-    // Regular registration only allows Customer role
     this.registerForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
-      role: [UserRole.Customer] // Always Customer for regular registration
+      role: [UserRole.Seller, [Validators.required]] // Default to Seller
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -61,10 +62,14 @@ export class RegisterComponent {
     this.authService.register(registerRequest).subscribe({
       next: (response) => {
         if (response.success) {
-          this.successMessage = 'Registration successful! Redirecting to login...';
+          this.successMessage = `${registerRequest.role} account created successfully!`;
+          // Reset form after successful registration
           setTimeout(() => {
-            this.router.navigate(['/auth/login']);
-          }, 2000);
+            this.registerForm.reset({
+              role: UserRole.Seller
+            });
+            this.successMessage = '';
+          }, 3000);
         } else {
           this.errorMessage = response.message || 'Registration failed';
         }
@@ -73,7 +78,6 @@ export class RegisterComponent {
       error: (error) => {
         console.error('Registration error:', error);
         
-        // Handle different error types
         if (error.status === 0) {
           this.errorMessage = 'Unable to connect to server. Please check if the backend is running and CORS is configured.';
         } else if (error.status === 404) {

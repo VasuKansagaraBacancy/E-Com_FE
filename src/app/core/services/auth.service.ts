@@ -29,7 +29,20 @@ export class AuthService {
 
   constructor() {
     // Initialize user from storage if available
-    const user = this.storageService.getUser();
+    let user = this.storageService.getUser();
+    
+    // If user is not in storage but token exists, try to decode token
+    if (!user) {
+      const token = this.storageService.getToken();
+      if (token) {
+        user = this.decodeTokenToUser(token);
+        if (user) {
+          // Store the decoded user in localStorage
+          this.storageService.setUser(user);
+        }
+      }
+    }
+    
     if (user) {
       this.currentUserSubject.next(user);
     }
@@ -40,16 +53,52 @@ export class AuthService {
       .pipe(
         tap(response => {
           if (response.success && response.data) {
-            this.storageService.setToken(response.data.token);
-            this.storageService.setUser(response.data.user);
-            this.currentUserSubject.next(response.data.user);
+            const token = response.data.token;
+            
+            // Extract user data directly from response.data (not nested in user property)
+            const user: User = {
+              email: response.data.email || credentials.email,
+              firstName: response.data.firstName || '',
+              lastName: response.data.lastName || '',
+              role: response.data.role || 'Customer' as any
+            };
+
+            // Store token and user
+            this.storageService.setToken(token);
+            this.storageService.setUser(user);
+            this.currentUserSubject.next(user);
           }
         })
       );
   }
 
+  private decodeTokenToUser(token: string): User | null {
+    try {
+      // JWT tokens have 3 parts separated by dots: header.payload.signature
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return null;
+      }
+
+      // Decode the payload (second part)
+      const payload = JSON.parse(atob(parts[1]));
+      
+      // Extract user information from token claims based on ASP.NET Core JWT structure
+      const user: User = {
+        id: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+        email: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || payload.email || '',
+        firstName: payload.FirstName || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || '',
+        lastName: payload.LastName || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] || '',
+        role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || 'Customer'
+      };
+
+      return user;
+    } catch (error) {
+      return null;
+    }
+  }
+
   register(userData: RegisterRequest): Observable<ApiResponse<any>> {
-    console.log('Registering user:', { url: `${this.apiUrl}/register`, data: userData });
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/register`, userData);
   }
 
@@ -78,6 +127,20 @@ export class AuthService {
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
     return user?.role === role;
+  }
+
+  isAdmin(): boolean {
+    // Check from current user subject first, then fallback to localStorage
+    const user = this.getCurrentUser();
+    if (user?.role === 'Admin') {
+      return true;
+    }
+    // Fallback to localStorage check
+    return this.storageService.isAdmin();
+  }
+
+  getRoleFromStorage(): string | null {
+    return this.storageService.getUserRole();
   }
 }
 

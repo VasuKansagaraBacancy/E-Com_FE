@@ -20,7 +20,11 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  user: User;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  expiresAt?: string;
 }
 
 export interface RegisterRequest {

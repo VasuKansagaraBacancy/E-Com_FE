@@ -51,22 +51,8 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="role">Role</label>
-        <select
-          id="role"
-          formControlName="role"
-          class="form-control"
-          [class.invalid]="role?.invalid && role?.touched"
-        >
-          <option *ngFor="let roleOption of roles" [value]="roleOption">
-            {{ roleOption }}
-          </option>
-        </select>
-        <div class="error-message" *ngIf="role?.invalid && role?.touched">
-          Role is required
-        </div>
-      </div>
+      <!-- Role is automatically set to Customer for regular registration -->
+      <input type="hidden" formControlName="role" />
 
       <div class="form-group">
         <label for="password">Password</label>

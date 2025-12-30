@@ -20,12 +20,25 @@ export class StorageService {
   }
 
   setUser(user: any): void {
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    if (user) {
+      // Ensure we're storing a valid object, not undefined
+      const userToStore = typeof user === 'object' ? user : { role: user };
+      localStorage.setItem(this.USER_KEY, JSON.stringify(userToStore));
+    }
   }
 
   getUser(): any | null {
     const userStr = localStorage.getItem(this.USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr || userStr === 'undefined' || userStr === 'null') {
+      return null;
+    }
+    try {
+      const user = JSON.parse(userStr);
+      return user;
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+      return null;
+    }
   }
 
   removeUser(): void {
@@ -39,6 +52,16 @@ export class StorageService {
 
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  getUserRole(): string | null {
+    const user = this.getUser();
+    return user?.role || null;
+  }
+
+  isAdmin(): boolean {
+    const role = this.getUserRole();
+    return role === 'Admin';
   }
 }
 
