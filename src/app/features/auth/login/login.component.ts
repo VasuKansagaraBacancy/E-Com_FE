@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { LoginRequest } from '../../../core/models/user.model';
+import { LoginRequest, UserRole } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +25,7 @@ export class LoginComponent {
   constructor() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(8)]]
     });
   }
 
@@ -43,20 +43,28 @@ export class LoginComponent {
     this.authService.login(loginData).subscribe({
       next: (response) => {
         if (response.success) {
-          // Check if user is admin and redirect accordingly
+          // Get user role from the response or current user
           const user = this.authService.getCurrentUser();
+          const userRole = user?.role || response.data?.role;
           const returnUrl = this.route.snapshot.queryParams['returnUrl'];
           
+          // If there's a return URL, use it
           if (returnUrl) {
-            // If there's a return URL, use it
             this.router.navigate([returnUrl]);
-          } else if (user?.role === 'Admin') {
-            // Admin users can be redirected to admin dashboard or admin-register
-            // For now, redirect to admin-register (you can change this to admin dashboard)
-            this.router.navigate(['/auth/admin-register']);
           } else {
-            // Regular users go to home/dashboard
-            this.router.navigate(['/']);
+            // Redirect based on user role
+            switch (userRole) {
+              case UserRole.Admin:
+                this.router.navigate(['/admin/dashboard']);
+                break;
+              case UserRole.Seller:
+                this.router.navigate(['/seller/dashboard']);
+                break;
+              case UserRole.Customer:
+              default:
+                this.router.navigate(['/home']);
+                break;
+            }
           }
         } else {
           this.errorMessage = response.message || 'Login failed';
