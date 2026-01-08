@@ -142,5 +142,60 @@ export class AuthService {
   getRoleFromStorage(): string | null {
     return this.storageService.getUserRole();
   }
+
+  /**
+   * Google Sign-In using Google Identity Services
+   * Sends Google ID token to backend for validation and authentication
+   */
+  googleLogin(idToken: string): Observable<ApiResponse<LoginResponse>> {
+    const requestBody = { idToken };
+    
+    // Log request for debugging (remove in production)
+    console.log('Google Login Request:', {
+      url: `${this.apiUrl}/google-login`,
+      body: { idToken: idToken.substring(0, 50) + '...' } // Log only first 50 chars
+    });
+
+    return this.http.post<ApiResponse<LoginResponse>>(
+      `${this.apiUrl}/google-login`, 
+      requestBody,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+      .pipe(
+        tap({
+          next: (response) => {
+            console.log('Google Login Response:', response);
+            if (response.success && response.data) {
+              const token = response.data.token;
+              
+              // Extract user data from response
+              const user: User = {
+                email: response.data.email || '',
+                firstName: response.data.firstName || '',
+                lastName: response.data.lastName || '',
+                role: response.data.role || 'Customer' as any // Backend guarantees Customer for new users
+              };
+
+              // Store token and user
+              this.storageService.setToken(token);
+              this.storageService.setUser(user);
+              this.currentUserSubject.next(user);
+            }
+          },
+          error: (error) => {
+            console.error('Google Login Error:', {
+              status: error.status,
+              statusText: error.statusText,
+              error: error.error,
+              message: error.message
+            });
+          }
+        })
+      );
+  }
 }
 

@@ -82,6 +82,18 @@
       </button>
     </form>
 
+    <div class="divider">
+      <span>OR</span>
+    </div>
+
+    <div class="google-signin-wrapper">
+      <div id="googleSignInDiv"></div>
+      <div *ngIf="isGoogleLoading" class="google-loading">
+        <div class="loading-spinner"></div>
+        <span>Signing in with Google...</span>
+      </div>
+    </div>
+
     <div class="auth-links">
       <a routerLink="/auth/forgot-password">Forgot Password?</a>
       <p>Don't have an account? <a routerLink="/auth/register">Create Account</a></p>
