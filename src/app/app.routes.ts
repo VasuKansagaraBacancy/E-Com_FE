@@ -53,6 +53,28 @@ export const routes: Routes = [
     data: { roles: [UserRole.Customer] }
   },
   {
+    path: 'products',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/products/product-list/product-list.component').then(m => m.ProductListComponent)
+      },
+      {
+        path: 'create',
+        loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
+      },
+      {
+        path: 'edit/:id',
+        loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./features/products/product-list/product-list.component').then(m => m.ProductListComponent)
+      }
+    ]
+  },
+  {
     path: 'seller',
     canActivate: [authGuard, roleGuard],
     data: { roles: [UserRole.Seller] },
@@ -81,6 +103,18 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () => import('./features/admin/dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./features/admin/users/user-management.component').then(m => m.UserManagementComponent)
+      },
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/admin/categories/category-management.component').then(m => m.CategoryManagementComponent)
+      },
+      {
+        path: 'products/approval',
+        loadComponent: () => import('./features/admin/products/product-approval.component').then(m => m.ProductApprovalComponent)
       }
     ]
   },

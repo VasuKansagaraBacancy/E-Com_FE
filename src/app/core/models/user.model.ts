@@ -52,5 +52,24 @@ export interface ApiResponse<T> {
   errors?: string[];
 }
 
+// User Management Models
+export interface UserManagement {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+  hasGoogleAuth: boolean;
+  hasPassword: boolean;
+}
+
+export interface UpdateUserStatusRequest {
+  userId: number;
+  isActive: boolean;
+}
+
 
 

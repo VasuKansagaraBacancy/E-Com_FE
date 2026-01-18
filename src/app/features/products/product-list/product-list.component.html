@@ -1,0 +1,111 @@
+<app-header></app-header>
+
+<div class="product-list-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Products</h1>
+      <p *ngIf="isCustomer">Browse our approved products</p>
+      <p *ngIf="isSeller">Manage your products</p>
+      <p *ngIf="isAdmin">Manage all products in the system</p>
+    </div>
+    <div class="header-actions" *ngIf="isAdmin || isSeller">
+      <button class="btn-primary" routerLink="/products/create">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Product
+      </button>
+      <button class="btn-secondary" (click)="loadProducts()" [disabled]="isLoading">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="error-message" *ngIf="errorMessage">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    {{ errorMessage }}
+  </div>
+
+  <div class="products-grid-container">
+    <div class="loading-overlay" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
+
+    <div class="products-grid" *ngIf="!isLoading">
+      <div class="product-card" *ngFor="let product of products">
+        <div class="product-image">
+          <img [src]="product.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'" 
+               [alt]="product.name">
+          <span [ngClass]="getStatusBadgeClass(product.status)" class="status-overlay">
+            {{ product.status }}
+          </span>
+        </div>
+        
+        <div class="product-info">
+          <h3 class="product-name">{{ product.name }}</h3>
+          <p class="product-description">{{ product.description }}</p>
+          <div class="product-meta">
+            <span class="product-category">{{ product.categoryName }}</span>
+            <span class="product-stock" [class.low-stock]="product.stockQuantity < 10">
+              Stock: {{ product.stockQuantity }}
+            </span>
+          </div>
+          <div class="product-footer">
+            <span class="product-price">{{ formatPrice(product.price) }}</span>
+            <div class="product-actions" *ngIf="isAdmin || isSeller">
+              <button class="btn-edit" routerLink="/products/edit/{{ product.id }}" 
+                      [disabled]="!canEditProduct(product)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Edit
+              </button>
+              <button class="btn-delete" (click)="deleteProduct(product.id, product.name)"
+                      [disabled]="!canDeleteProduct(product)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Delete
+              </button>
+            </div>
+            <button class="btn-view" *ngIf="isCustomer" routerLink="/products/{{ product.id }}">
+              View Details
+            </button>
+          </div>
+          <div class="product-seller-info" *ngIf="isAdmin && product.createdByEmail">
+            <small>Created by: {{ product.createdByEmail }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && products.length === 0">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="9" y1="3" x2="9" y2="21"></line>
+        <line x1="3" y1="9" x2="21" y2="9"></line>
+      </svg>
+      <h3>No Products Found</h3>
+      <p *ngIf="isCustomer">There are no approved products available at the moment.</p>
+      <p *ngIf="isSeller">You haven't created any products yet.</p>
+      <p *ngIf="isAdmin">No products in the system yet.</p>
+      <button class="btn-primary" *ngIf="isAdmin || isSeller" routerLink="/products/create">
+        Create Your First Product
+      </button>
+    </div>
+  </div>
+</div>
+
