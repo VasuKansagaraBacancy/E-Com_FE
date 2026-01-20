@@ -2,6 +2,15 @@
 
 <div class="product-form-container">
   <div class="form-card">
+    <div class="page-toolbar">
+      <button class="btn-back" type="button" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="15 18 9 12 15 6"></polyline>
+          <line x1="9" y1="12" x2="21" y2="12"></line>
+        </svg>
+        Back to Dashboard
+      </button>
+    </div>
     <div class="header-section">
       <h2>{{ isEditMode ? 'Edit Product' : 'Create New Product' }}</h2>
       <p>{{ isEditMode ? 'Update product information' : 'Add a new product to the catalog' }}</p>

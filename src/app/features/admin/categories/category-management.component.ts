@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { ProductService } from '../../../core/services/product.service';
@@ -15,6 +16,7 @@ import { Category, CreateCategoryRequest, UpdateCategoryRequest } from '../../..
 export class CategoryManagementComponent implements OnInit {
   private productService = inject(ProductService);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
 
   categories: Category[] = [];
   isLoading = false;
@@ -35,6 +37,10 @@ export class CategoryManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCategories();
+  }
+
+  goBackToDashboard(): void {
+    this.router.navigate(['/admin/dashboard']);
   }
 
   loadCategories(): void {

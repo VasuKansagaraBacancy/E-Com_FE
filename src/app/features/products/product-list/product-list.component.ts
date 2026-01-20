@@ -37,6 +37,16 @@ export class ProductListComponent implements OnInit {
     this.loadProducts();
   }
 
+  goBack(): void {
+    if (this.isAdmin) {
+      this.router.navigate(['/admin/dashboard']);
+    } else if (this.isSeller) {
+      this.router.navigate(['/seller/dashboard']);
+    } else {
+      this.router.navigate(['/home']);
+    }
+  }
+
   loadProducts(): void {
     this.isLoading = true;
     this.errorMessage = '';

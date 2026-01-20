@@ -193,5 +193,18 @@ export class ProductFormComponent implements OnInit {
       img.style.display = 'none';
     }
   }
+
+  goBack(): void {
+    const currentUser = this.authService.getCurrentUser();
+    const role = currentUser?.role;
+
+    if (role === UserRole.Admin) {
+      this.router.navigate(['/admin/dashboard']);
+    } else if (role === UserRole.Seller) {
+      this.router.navigate(['/seller/dashboard']);
+    } else {
+      this.router.navigate(['/home']);
+    }
+  }
 }
 

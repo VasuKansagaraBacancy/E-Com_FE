@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { ProductService } from '../../../core/services/product.service';
 import { Product, ProductStatus } from '../../../core/models/product.model';
@@ -14,6 +14,7 @@ import { Product, ProductStatus } from '../../../core/models/product.model';
 })
 export class ProductApprovalComponent implements OnInit {
   private productService = inject(ProductService);
+  private router = inject(Router);
 
   pendingProducts: Product[] = [];
   isLoading = false;
@@ -22,6 +23,10 @@ export class ProductApprovalComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPendingProducts();
+  }
+
+  goBackToDashboard(): void {
+    this.router.navigate(['/admin/dashboard']);
   }
 
   loadPendingProducts(): void {

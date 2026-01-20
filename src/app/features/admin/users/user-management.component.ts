@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -15,6 +16,7 @@ import { UserManagement } from '../../../core/models/user.model';
 export class UserManagementComponent implements OnInit {
   private userService = inject(UserService);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   users: UserManagement[] = [];
   isLoading = false;
@@ -27,6 +29,10 @@ export class UserManagementComponent implements OnInit {
     // Get current user email to prevent self-deactivation
     const currentUser = this.authService.getCurrentUser();
     this.currentUserEmail = currentUser?.email || null;
+  }
+
+  goBackToDashboard(): void {
+    this.router.navigate(['/admin/dashboard']);
   }
 
   loadUsers(): void {
