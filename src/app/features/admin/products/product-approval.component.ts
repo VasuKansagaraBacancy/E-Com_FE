@@ -1,9 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { ProductService } from '../../../core/services/product.service';
-import { Product, ProductStatus } from '../../../core/models/product.model';
+import { NavigationService } from '../../../core/services/navigation.service';
+import { UiHelperService } from '../../../core/services/ui-helper.service';
+import { LoggerService } from '../../../core/services/logger.service';
+import { Product } from '../../../core/models/product.model';
 
 @Component({
   selector: 'app-product-approval',
@@ -14,7 +17,9 @@ import { Product, ProductStatus } from '../../../core/models/product.model';
 })
 export class ProductApprovalComponent implements OnInit {
   private productService = inject(ProductService);
-  private router = inject(Router);
+  public navigationService = inject(NavigationService);
+  public uiHelper = inject(UiHelperService);
+  private logger = inject(LoggerService);
 
   pendingProducts: Product[] = [];
   isLoading = false;
@@ -26,7 +31,7 @@ export class ProductApprovalComponent implements OnInit {
   }
 
   goBackToDashboard(): void {
-    this.router.navigate(['/admin/dashboard']);
+    this.navigationService.goToDashboard();
   }
 
   loadPendingProducts(): void {
@@ -43,7 +48,7 @@ export class ProductApprovalComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading pending products:', error);
+        this.logger.httpError('Loading pending products', error);
         if (error.status === 401) {
           this.errorMessage = 'Unauthorized. Please log in again.';
         } else if (error.status === 403) {
@@ -87,7 +92,7 @@ export class ProductApprovalComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error updating product status:', error);
+        this.logger.httpError('Updating product status', error);
         if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else {
@@ -97,31 +102,4 @@ export class ProductApprovalComponent implements OnInit {
       }
     });
   }
-
-  formatPrice(price: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
-  }
-
-  formatDate(dateString: string | null): string {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  handleImageError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    if (img) {
-      img.src = 'https://via.placeholder.com/300x200?text=No+Image';
-    }
-  }
 }
-

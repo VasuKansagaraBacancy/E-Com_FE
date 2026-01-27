@@ -121,11 +121,11 @@
             <td class="name-cell">{{ category.name }}</td>
             <td class="description-cell">{{ category.description }}</td>
             <td class="status-cell">
-              <span [ngClass]="category.isActive ? 'status-badge active' : 'status-badge inactive'">
+              <span [ngClass]="uiHelper.getStatusBadgeClass(category.isActive)">
                 {{ category.isActive ? 'Active' : 'Inactive' }}
               </span>
             </td>
-            <td class="date-cell">{{ formatDate(category.createdAt) }}</td>
+            <td class="date-cell">{{ uiHelper.formatDateShort(category.createdAt) }}</td>
             <td class="actions-cell">
               <button class="btn-action btn-edit" (click)="startEdit(category)" [disabled]="isLoading">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">

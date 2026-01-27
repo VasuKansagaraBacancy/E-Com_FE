@@ -1,9 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../core/components/header/header.component';
-import { ProductService } from '../../../core/services/product.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { NavigationService } from '../../../core/services/navigation.service';
+import { UiHelperService } from '../../../core/services/ui-helper.service';
+import { LoggerService } from '../../../core/services/logger.service';
 import { Category, CreateCategoryRequest, UpdateCategoryRequest } from '../../../core/models/product.model';
 
 @Component({
@@ -14,9 +16,11 @@ import { Category, CreateCategoryRequest, UpdateCategoryRequest } from '../../..
   styleUrl: './category-management.component.scss'
 })
 export class CategoryManagementComponent implements OnInit {
-  private productService = inject(ProductService);
+  private categoryService = inject(CategoryService);
   private fb = inject(FormBuilder);
-  private router = inject(Router);
+  public navigationService = inject(NavigationService);
+  public uiHelper = inject(UiHelperService);
+  private logger = inject(LoggerService);
 
   categories: Category[] = [];
   isLoading = false;
@@ -40,14 +44,14 @@ export class CategoryManagementComponent implements OnInit {
   }
 
   goBackToDashboard(): void {
-    this.router.navigate(['/admin/dashboard']);
+    this.navigationService.goToDashboard();
   }
 
   loadCategories(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.productService.getCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.categories = response.data;
@@ -57,7 +61,7 @@ export class CategoryManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading categories:', error);
+        this.logger.httpError('Loading categories', error);
         this.errorMessage = 'An error occurred while loading categories.';
         this.isLoading = false;
       }
@@ -100,7 +104,7 @@ export class CategoryManagementComponent implements OnInit {
 
     if (this.isEditing && this.editingCategoryId) {
       const updateRequest: UpdateCategoryRequest = formValue;
-      this.productService.updateCategory(this.editingCategoryId, updateRequest).subscribe({
+      this.categoryService.updateCategory(this.editingCategoryId, updateRequest).subscribe({
         next: (response) => {
           if (response.success) {
             this.successMessage = response.message || 'Category updated successfully!';
@@ -115,7 +119,7 @@ export class CategoryManagementComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error updating category:', error);
+          this.logger.httpError('Updating category', error);
           this.errorMessage = error.error?.message || 'An error occurred while updating the category.';
           this.isLoading = false;
         }
@@ -125,7 +129,7 @@ export class CategoryManagementComponent implements OnInit {
         name: formValue.name,
         description: formValue.description
       };
-      this.productService.createCategory(createRequest).subscribe({
+      this.categoryService.createCategory(createRequest).subscribe({
         next: (response) => {
           if (response.success) {
             this.successMessage = response.message || 'Category created successfully!';
@@ -140,7 +144,7 @@ export class CategoryManagementComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error creating category:', error);
+          this.logger.httpError('Creating category', error);
           this.errorMessage = error.error?.message || 'An error occurred while creating the category.';
           this.isLoading = false;
         }
@@ -151,7 +155,7 @@ export class CategoryManagementComponent implements OnInit {
   deleteCategory(categoryId: number, categoryName: string): void {
     if (confirm(`Are you sure you want to delete "${categoryName}"? This will deactivate the category.`)) {
       this.isLoading = true;
-      this.productService.deleteCategory(categoryId).subscribe({
+      this.categoryService.deleteCategory(categoryId).subscribe({
         next: (response) => {
           if (response.success) {
             this.successMessage = response.message || 'Category deleted successfully!';
@@ -165,7 +169,7 @@ export class CategoryManagementComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error deleting category:', error);
+          this.logger.httpError('Deleting category', error);
           this.errorMessage = error.error?.message || 'An error occurred while deleting the category.';
           this.isLoading = false;
         }
@@ -184,15 +188,4 @@ export class CategoryManagementComponent implements OnInit {
 
   get name() { return this.categoryForm.get('name'); }
   get description() { return this.categoryForm.get('description'); }
-
-  formatDate(dateString: string | null): string {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
 }
-

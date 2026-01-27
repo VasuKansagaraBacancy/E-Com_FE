@@ -62,15 +62,19 @@ export const routes: Routes = [
       },
       {
         path: 'create',
+        canActivate: [roleGuard],
+        data: { roles: [UserRole.Admin, UserRole.Seller] },
         loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
       },
       {
         path: 'edit/:id',
+        canActivate: [roleGuard],
+        data: { roles: [UserRole.Admin, UserRole.Seller] },
         loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
       },
       {
         path: ':id',
-        loadComponent: () => import('./features/products/product-list/product-list.component').then(m => m.ProductListComponent)
+        loadComponent: () => import('./features/products/product-details/product-details.component').then(m => m.ProductDetailsComponent)
       }
     ]
   },

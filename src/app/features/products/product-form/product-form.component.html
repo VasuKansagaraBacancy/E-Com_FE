@@ -175,7 +175,7 @@
           <span *ngIf="imageUrl?.errors?.['required']">Image URL is required</span>
         </div>
         <div class="image-preview" *ngIf="imageUrl?.value && !imageUrl?.invalid">
-          <img [src]="imageUrl?.value || ''" alt="Preview" (error)="handleImageError($event)">
+          <img [src]="imageUrl?.value || ''" alt="Preview" (error)="uiHelper.hideImageOnError($event)">
         </div>
       </div>
 

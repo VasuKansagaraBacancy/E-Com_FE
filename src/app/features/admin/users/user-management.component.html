@@ -70,10 +70,10 @@
             <td class="email-cell">{{ user.email }}</td>
             <td class="name-cell">{{ user.firstName }} {{ user.lastName }}</td>
             <td class="role-cell">
-              <span [ngClass]="getRoleBadgeClass(user.role)">{{ user.role }}</span>
+              <span [ngClass]="uiHelper.getRoleBadgeClass(user.role)">{{ user.role }}</span>
             </td>
             <td class="status-cell">
-              <span [ngClass]="getStatusBadgeClass(user.isActive)">
+              <span [ngClass]="uiHelper.getStatusBadgeClass(user.isActive)">
                 {{ user.isActive ? 'Active' : 'Inactive' }}
               </span>
             </td>
@@ -98,7 +98,7 @@
                 <span class="no-auth" *ngIf="!user.hasPassword && !user.hasGoogleAuth">No Auth</span>
               </div>
             </td>
-            <td class="date-cell">{{ formatDate(user.createdAt) }}</td>
+            <td class="date-cell">{{ uiHelper.formatDate(user.createdAt) }}</td>
             <td class="actions-cell">
               <button
                 *ngIf="user.isActive"

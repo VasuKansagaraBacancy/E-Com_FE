@@ -55,8 +55,9 @@
     <div class="products-grid" *ngIf="!isLoading">
       <div class="product-card" *ngFor="let product of products">
         <div class="product-image">
-          <img [src]="product.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'" 
-               [alt]="product.name">
+          <img [src]="uiHelper.getImageUrl(product.imageUrl)" 
+               [alt]="product.name"
+               (error)="uiHelper.handleImageError($event)">
           <span [ngClass]="getStatusBadgeClass(product.status)" class="status-overlay">
             {{ product.status }}
           </span>
@@ -72,9 +73,10 @@
             </span>
           </div>
           <div class="product-footer">
-            <span class="product-price">{{ formatPrice(product.price) }}</span>
-            <div class="product-actions" *ngIf="isAdmin || isSeller">
-              <button class="btn-edit" routerLink="/products/edit/{{ product.id }}" 
+            <span class="product-price">{{ uiHelper.formatPrice(product.price) }}</span>
+            <div class="product-actions">
+              <button class="btn-edit" *ngIf="isAdmin || isSeller"
+                      routerLink="/products/edit/{{ product.id }}" 
                       [disabled]="!canEditProduct(product)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -82,7 +84,8 @@
                 </svg>
                 Edit
               </button>
-              <button class="btn-delete" (click)="deleteProduct(product.id, product.name)"
+              <button class="btn-delete" *ngIf="isAdmin || isSeller"
+                      (click)="deleteProduct(product.id, product.name)"
                       [disabled]="!canDeleteProduct(product)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <polyline points="3 6 5 6 21 6"></polyline>
@@ -90,10 +93,14 @@
                 </svg>
                 Delete
               </button>
+              <button class="btn-view" (click)="viewProductDetails(product.id)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                View
+              </button>
             </div>
-            <button class="btn-view" *ngIf="isCustomer" routerLink="/products/{{ product.id }}">
-              View Details
-            </button>
           </div>
           <div class="product-seller-info" *ngIf="isAdmin && product.createdByEmail">
             <small>Created by: {{ product.createdByEmail }}</small>

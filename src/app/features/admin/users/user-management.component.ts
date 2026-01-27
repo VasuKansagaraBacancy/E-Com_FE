@@ -1,9 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { NavigationService } from '../../../core/services/navigation.service';
+import { UiHelperService } from '../../../core/services/ui-helper.service';
+import { LoggerService } from '../../../core/services/logger.service';
 import { UserManagement } from '../../../core/models/user.model';
 
 @Component({
@@ -16,7 +18,9 @@ import { UserManagement } from '../../../core/models/user.model';
 export class UserManagementComponent implements OnInit {
   private userService = inject(UserService);
   private authService = inject(AuthService);
-  private router = inject(Router);
+  public navigationService = inject(NavigationService);
+  public uiHelper = inject(UiHelperService);
+  private logger = inject(LoggerService);
 
   users: UserManagement[] = [];
   isLoading = false;
@@ -32,7 +36,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   goBackToDashboard(): void {
-    this.router.navigate(['/admin/dashboard']);
+    this.navigationService.goToDashboard();
   }
 
   loadUsers(): void {
@@ -50,7 +54,7 @@ export class UserManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading users:', error);
+        this.logger.httpError('Loading users', error);
         if (error.status === 401) {
           this.errorMessage = 'Unauthorized. Please log in again.';
         } else if (error.status === 403) {
@@ -109,7 +113,7 @@ export class UserManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error updating user status:', error);
+        this.logger.httpError('Updating user status', error);
         if (error.status === 401) {
           this.errorMessage = 'Unauthorized. Please log in again.';
         } else if (error.status === 404) {
@@ -123,34 +127,4 @@ export class UserManagementComponent implements OnInit {
       }
     });
   }
-
-  getStatusBadgeClass(isActive: boolean): string {
-    return isActive ? 'status-badge active' : 'status-badge inactive';
-  }
-
-  getRoleBadgeClass(role: string): string {
-    switch (role) {
-      case 'Admin':
-        return 'role-badge admin';
-      case 'Seller':
-        return 'role-badge seller';
-      case 'Customer':
-        return 'role-badge customer';
-      default:
-        return 'role-badge';
-    }
-  }
-
-  formatDate(dateString: string | null): string {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
 }
-

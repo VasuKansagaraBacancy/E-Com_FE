@@ -1,9 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { ProductService } from '../../../core/services/product.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { NavigationService } from '../../../core/services/navigation.service';
+import { UiHelperService } from '../../../core/services/ui-helper.service';
+import { LoggerService } from '../../../core/services/logger.service';
 import { Product, ProductStatus } from '../../../core/models/product.model';
 import { UserRole } from '../../../core/models/user.model';
 
@@ -17,7 +20,9 @@ import { UserRole } from '../../../core/models/user.model';
 export class ProductListComponent implements OnInit {
   private productService = inject(ProductService);
   private authService = inject(AuthService);
-  private router = inject(Router);
+  public navigationService = inject(NavigationService);
+  public uiHelper = inject(UiHelperService);
+  private logger = inject(LoggerService);
 
   products: Product[] = [];
   isLoading = false;
@@ -38,13 +43,7 @@ export class ProductListComponent implements OnInit {
   }
 
   goBack(): void {
-    if (this.isAdmin) {
-      this.router.navigate(['/admin/dashboard']);
-    } else if (this.isSeller) {
-      this.router.navigate(['/seller/dashboard']);
-    } else {
-      this.router.navigate(['/home']);
-    }
+    this.navigationService.goToDashboard();
   }
 
   loadProducts(): void {
@@ -74,7 +73,7 @@ export class ProductListComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading products:', error);
+        this.logger.httpError('Loading products', error);
         if (error.status === 401) {
           this.errorMessage = 'Unauthorized. Please log in again.';
         } else if (error.error?.message) {
@@ -100,7 +99,7 @@ export class ProductListComponent implements OnInit {
           }
         },
         error: (error) => {
-          console.error('Error deleting product:', error);
+          this.logger.httpError('Deleting product', error);
           this.errorMessage = error.error?.message || 'An error occurred while deleting the product.';
           this.isLoading = false;
         }
@@ -109,16 +108,7 @@ export class ProductListComponent implements OnInit {
   }
 
   getStatusBadgeClass(status: ProductStatus): string {
-    switch (status) {
-      case ProductStatus.Approved:
-        return 'status-badge approved';
-      case ProductStatus.Pending:
-        return 'status-badge pending';
-      case ProductStatus.Rejected:
-        return 'status-badge rejected';
-      default:
-        return 'status-badge';
-    }
+    return this.uiHelper.getProductStatusBadgeClass(status);
   }
 
   canEditProduct(product: Product): boolean {
@@ -135,11 +125,7 @@ export class ProductListComponent implements OnInit {
     return this.canEditProduct(product);
   }
 
-  formatPrice(price: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
+  viewProductDetails(productId: number): void {
+    this.navigationService.goToProductDetails(productId);
   }
 }
-

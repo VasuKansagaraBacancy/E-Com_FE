@@ -45,12 +45,8 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errors?: string[];
-}
+// Re-export ApiResponse from centralized location for backward compatibility
+export type { ApiResponse } from './api-response.model';
 
 // User Management Models
 export interface UserManagement {

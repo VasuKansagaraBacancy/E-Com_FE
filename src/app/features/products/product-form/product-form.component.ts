@@ -1,12 +1,17 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { ProductService } from '../../../core/services/product.service';
+import { CategoryService } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Category, Product, CreateProductRequest, UpdateProductRequest } from '../../../core/models/product.model';
+import { NavigationService } from '../../../core/services/navigation.service';
+import { UiHelperService } from '../../../core/services/ui-helper.service';
+import { LoggerService } from '../../../core/services/logger.service';
+import { Category, CreateProductRequest, UpdateProductRequest } from '../../../core/models/product.model';
 import { UserRole } from '../../../core/models/user.model';
+import { VALIDATION } from '../../../core/constants/validation.constants';
 
 @Component({
   selector: 'app-product-form',
@@ -18,9 +23,12 @@ import { UserRole } from '../../../core/models/user.model';
 export class ProductFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private productService = inject(ProductService);
+  private categoryService = inject(CategoryService);
   private authService = inject(AuthService);
+  public navigationService = inject(NavigationService);
+  public uiHelper = inject(UiHelperService);
+  private logger = inject(LoggerService);
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
 
   productForm: FormGroup;
   categories: Category[] = [];
@@ -33,10 +41,10 @@ export class ProductFormComponent implements OnInit {
 
   constructor() {
     this.productForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(200)]],
-      description: ['', [Validators.maxLength(2000)]],
-      price: ['', [Validators.required, Validators.min(0.01)]],
-      stockQuantity: ['', [Validators.required, Validators.min(0)]],
+      name: ['', [Validators.required, Validators.maxLength(VALIDATION.PRODUCT_NAME_MAX_LENGTH)]],
+      description: ['', [Validators.maxLength(VALIDATION.PRODUCT_DESCRIPTION_MAX_LENGTH)]],
+      price: ['', [Validators.required, Validators.min(VALIDATION.PRICE_MIN)]],
+      stockQuantity: ['', [Validators.required, Validators.min(VALIDATION.STOCK_MIN)]],
       imageUrl: ['', [Validators.required]],
       categoryId: ['', [Validators.required]]
     });
@@ -59,7 +67,7 @@ export class ProductFormComponent implements OnInit {
   }
 
   loadCategories(): void {
-    this.productService.getCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next: (response) => {
         if (response.success && response.data) {
           // Filter only active categories
@@ -67,7 +75,7 @@ export class ProductFormComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error loading categories:', error);
+        this.logger.httpError('Loading categories', error);
         this.errorMessage = 'Failed to load categories. Please try again.';
       }
     });
@@ -95,7 +103,7 @@ export class ProductFormComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading product:', error);
+        this.logger.httpError('Loading product', error);
         if (error.status === 404) {
           this.errorMessage = 'Product not found.';
         } else {
@@ -125,7 +133,7 @@ export class ProductFormComponent implements OnInit {
           if (response.success) {
             this.successMessage = response.message || 'Product updated successfully!';
             setTimeout(() => {
-              this.router.navigate(['/products']);
+              this.navigationService.goToProducts();
             }, 2000);
           } else {
             this.errorMessage = response.message || 'Failed to update product';
@@ -133,7 +141,7 @@ export class ProductFormComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error updating product:', error);
+          this.logger.httpError('Updating product', error);
           if (error.error?.message) {
             this.errorMessage = error.error.message;
           } else if (error.error?.errors) {
@@ -151,7 +159,7 @@ export class ProductFormComponent implements OnInit {
           if (response.success) {
             this.successMessage = response.message || 'Product created successfully!';
             setTimeout(() => {
-              this.router.navigate(['/products']);
+              this.navigationService.goToProducts();
             }, 2000);
           } else {
             this.errorMessage = response.message || 'Failed to create product';
@@ -159,7 +167,7 @@ export class ProductFormComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error creating product:', error);
+          this.logger.httpError('Creating product', error);
           if (error.error?.message) {
             this.errorMessage = error.error.message;
           } else if (error.error?.errors) {
@@ -187,24 +195,7 @@ export class ProductFormComponent implements OnInit {
   get imageUrl() { return this.productForm.get('imageUrl'); }
   get categoryId() { return this.productForm.get('categoryId'); }
 
-  handleImageError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    if (img) {
-      img.style.display = 'none';
-    }
-  }
-
   goBack(): void {
-    const currentUser = this.authService.getCurrentUser();
-    const role = currentUser?.role;
-
-    if (role === UserRole.Admin) {
-      this.router.navigate(['/admin/dashboard']);
-    } else if (role === UserRole.Seller) {
-      this.router.navigate(['/seller/dashboard']);
-    } else {
-      this.router.navigate(['/home']);
-    }
+    this.navigationService.goToDashboard();
   }
 }
-

@@ -53,9 +53,9 @@
     <div class="products-grid" *ngIf="!isLoading">
       <div class="product-card" *ngFor="let product of pendingProducts">
         <div class="product-image">
-          <img [src]="product.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'" 
+          <img [src]="uiHelper.getImageUrl(product.imageUrl)" 
                [alt]="product.name"
-               (error)="handleImageError($event)">
+               (error)="uiHelper.handleImageError($event)">
           <span class="status-badge pending">Pending Approval</span>
         </div>
         
@@ -70,7 +70,7 @@
             </div>
             <div class="detail-item">
               <span class="label">Price:</span>
-              <span class="value price">{{ formatPrice(product.price) }}</span>
+              <span class="value price">{{ uiHelper.formatPrice(product.price) }}</span>
             </div>
             <div class="detail-item">
               <span class="label">Stock:</span>
@@ -82,7 +82,7 @@
             </div>
             <div class="detail-item">
               <span class="label">Created at:</span>
-              <span class="value">{{ formatDate(product.createdAt) }}</span>
+              <span class="value">{{ uiHelper.formatDate(product.createdAt) }}</span>
             </div>
           </div>
 

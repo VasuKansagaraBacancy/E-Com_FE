@@ -2,63 +2,24 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiResponse } from '../models/user.model';
+import { ApiResponse } from '../models/api-response.model';
 import {
   Product,
-  Category,
   CreateProductRequest,
   UpdateProductRequest,
-  CreateCategoryRequest,
-  UpdateCategoryRequest,
   ApproveProductRequest
 } from '../models/product.model';
 
+/**
+ * Service for Product-related API calls
+ * Category operations are handled by CategoryService
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
   private http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/product`;
-  private readonly categoryApiUrl = `${environment.apiUrl}/api/productcategory`;
-
-  // ==================== CATEGORY APIs ====================
-
-  /**
-   * Get all categories (Public)
-   */
-  getCategories(): Observable<ApiResponse<Category[]>> {
-    return this.http.get<ApiResponse<Category[]>>(this.categoryApiUrl);
-  }
-
-  /**
-   * Get category by ID (Public)
-   */
-  getCategoryById(id: number): Observable<ApiResponse<Category>> {
-    return this.http.get<ApiResponse<Category>>(`${this.categoryApiUrl}/${id}`);
-  }
-
-  /**
-   * Create category (Admin only)
-   */
-  createCategory(category: CreateCategoryRequest): Observable<ApiResponse<Category>> {
-    return this.http.post<ApiResponse<Category>>(this.categoryApiUrl, category);
-  }
-
-  /**
-   * Update category (Admin only)
-   */
-  updateCategory(id: number, category: UpdateCategoryRequest): Observable<ApiResponse<Category>> {
-    return this.http.put<ApiResponse<Category>>(`${this.categoryApiUrl}/${id}`, category);
-  }
-
-  /**
-   * Delete category (Admin only) - Soft delete
-   */
-  deleteCategory(id: number): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.categoryApiUrl}/${id}`);
-  }
-
-  // ==================== PRODUCT APIs ====================
 
   /**
    * Get all products (filtered by role)
@@ -126,4 +87,3 @@ export class ProductService {
     return this.http.post<ApiResponse<any>>(`${this.apiUrl}/approve`, request);
   }
 }
-

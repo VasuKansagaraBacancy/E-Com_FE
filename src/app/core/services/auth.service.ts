@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { StorageService } from './storage.service';
+import { LoggerService } from './logger.service';
 import {
   LoginRequest,
   LoginResponse,
@@ -21,6 +22,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private storageService = inject(StorageService);
+  private logger = inject(LoggerService);
   
   private currentUserSubject = new BehaviorSubject<User | null>(this.storageService.getUser());
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -150,10 +152,9 @@ export class AuthService {
   googleLogin(idToken: string): Observable<ApiResponse<LoginResponse>> {
     const requestBody = { idToken };
     
-    // Log request for debugging (remove in production)
-    console.log('Google Login Request:', {
+    this.logger.debug('Google Login Request:', {
       url: `${this.apiUrl}/google-login`,
-      body: { idToken: idToken.substring(0, 50) + '...' } // Log only first 50 chars
+      body: { idToken: idToken.substring(0, 50) + '...' }
     });
 
     return this.http.post<ApiResponse<LoginResponse>>(
@@ -168,7 +169,7 @@ export class AuthService {
       .pipe(
         tap({
           next: (response) => {
-            console.log('Google Login Response:', response);
+            this.logger.debug('Google Login Response:', response);
             if (response.success && response.data) {
               const token = response.data.token;
               
@@ -177,7 +178,7 @@ export class AuthService {
                 email: response.data.email || '',
                 firstName: response.data.firstName || '',
                 lastName: response.data.lastName || '',
-                role: response.data.role || 'Customer' as any // Backend guarantees Customer for new users
+                role: response.data.role || 'Customer' as any
               };
 
               // Store token and user
@@ -187,12 +188,7 @@ export class AuthService {
             }
           },
           error: (error) => {
-            console.error('Google Login Error:', {
-              status: error.status,
-              statusText: error.statusText,
-              error: error.error,
-              message: error.message
-            });
+            this.logger.httpError('Google Login', error);
           }
         })
       );
