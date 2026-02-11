@@ -95,6 +95,33 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'cart',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [UserRole.Customer] },
+    loadComponent: () => import('./features/cart/cart.component').then(m => m.CartComponent)
+  },
+  {
+    path: 'checkout',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [UserRole.Customer] },
+    loadComponent: () => import('./features/checkout/checkout.component').then(m => m.CheckoutComponent)
+  },
+  {
+    path: 'orders',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [UserRole.Customer] },
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/orders/order-list/order-list.component').then(m => m.OrderListComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./features/orders/order-list/order-list.component').then(m => m.OrderListComponent)
+      }
+    ]
+  },
+  {
     path: 'admin',
     canActivate: [authGuard, roleGuard],
     data: { roles: [UserRole.Admin] },
@@ -119,6 +146,10 @@ export const routes: Routes = [
       {
         path: 'products/approval',
         loadComponent: () => import('./features/admin/products/product-approval.component').then(m => m.ProductApprovalComponent)
+      },
+      {
+        path: 'orders',
+        loadComponent: () => import('./features/admin/orders/order-management.component').then(m => m.OrderManagementComponent)
       }
     ]
   },

@@ -1,0 +1,189 @@
+<app-header></app-header>
+
+<div class="order-management-container">
+  <div class="back-navigation">
+    <button class="btn-back" (click)="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to Dashboard
+    </button>
+  </div>
+
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        Order Management
+      </h1>
+      <p>Manage and track all customer orders</p>
+    </div>
+
+    <div class="header-actions">
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="applyFilter()">
+        <option value="all">All Orders</option>
+        <option *ngFor="let status of orderStatuses" [value]="status">{{ status }}</option>
+      </select>
+      <button class="btn-refresh" (click)="loadOrders()" [disabled]="isLoading">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="messages-container">
+    <div class="success-message" *ngIf="successMessage">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      {{ successMessage }}
+    </div>
+
+    <div class="error-message" *ngIf="errorMessage">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading orders...</p>
+  </div>
+
+  <div class="orders-table-container" *ngIf="!isLoading">
+    <table class="orders-table" *ngIf="filteredOrders.length > 0">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of filteredOrders">
+          <td class="order-id-cell">
+            <span class="order-id">#{{ order.id }}</span>
+          </td>
+          <td class="customer-cell">
+            <div class="customer-info">
+              <span class="customer-name">{{ order.userName }}</span>
+              <span class="customer-email">{{ order.userEmail }}</span>
+            </div>
+          </td>
+          <td class="items-cell">
+            <div class="items-preview">
+              <span *ngFor="let item of order.orderItems.slice(0, 2)" class="item-name">
+                {{ item.productName }} ×{{ item.quantity }}
+              </span>
+              <span *ngIf="order.orderItems.length > 2" class="more-items">
+                +{{ order.orderItems.length - 2 }} more
+              </span>
+            </div>
+          </td>
+          <td class="total-cell">
+            <span class="total-amount">{{ uiHelper.formatPrice(order.totalAmount) }}</span>
+          </td>
+          <td class="status-cell">
+            <span [ngClass]="getStatusClass(order.status)">{{ order.status }}</span>
+          </td>
+          <td class="date-cell">
+            {{ uiHelper.formatDateShort(order.createdAt) }}
+          </td>
+          <td class="actions-cell">
+            <div class="status-actions" *ngIf="canChangeStatus(order)">
+              <!-- Processing -->
+              <button
+                *ngIf="order.status !== 'Processing' && order.status !== 'Cancelled' && order.status !== 'Delivered'"
+                class="status-btn status-processing"
+                type="button"
+                (click)="updateStatus(order, orderStatusEnum.Processing)"
+                title="Mark as Processing">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+              </button>
+
+              <!-- Shipped -->
+              <button
+                *ngIf="order.status !== 'Shipped' && order.status !== 'Delivered' && order.status !== 'Cancelled'"
+                class="status-btn status-shipped"
+                type="button"
+                (click)="updateStatus(order, orderStatusEnum.Shipped)"
+                title="Mark as Shipped">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="1" y="3" width="15" height="13" rx="2" ry="2"></rect>
+                  <polyline points="16 8 20 8 23 11 23 16 16 16"></polyline>
+                  <circle cx="5.5" cy="18.5" r="1.5"></circle>
+                  <circle cx="18.5" cy="18.5" r="1.5"></circle>
+                </svg>
+              </button>
+
+              <!-- Delivered -->
+              <button
+                *ngIf="order.status !== 'Delivered' && order.status !== 'Cancelled'"
+                class="status-btn status-delivered"
+                type="button"
+                (click)="updateStatus(order, orderStatusEnum.Delivered)"
+                title="Mark as Delivered">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+
+              <!-- Cancelled -->
+              <button
+                *ngIf="order.status !== 'Cancelled' && order.status !== 'Delivered'"
+                class="status-btn status-cancelled"
+                type="button"
+                (click)="updateStatus(order, orderStatusEnum.Cancelled)"
+                title="Cancel Order">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="8" y1="8" x2="16" y2="16"></line>
+                  <line x1="16" y1="8" x2="8" y2="16"></line>
+                </svg>
+              </button>
+            </div>
+            <span class="status-locked" *ngIf="!canChangeStatus(order)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Locked
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filteredOrders.length === 0">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+      </svg>
+      <h3>No Orders Found</h3>
+      <p *ngIf="statusFilter !== 'all'">No orders with status "{{ statusFilter }}". Try a different filter.</p>
+      <p *ngIf="statusFilter === 'all'">There are no orders in the system yet.</p>
+    </div>
+  </div>
+</div>
+

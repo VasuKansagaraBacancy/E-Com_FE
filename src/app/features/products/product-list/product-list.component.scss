@@ -107,22 +107,35 @@
     }
   }
 
-  .error-message {
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-    color: #e53e3e;
-    border-radius: 12px;
-    border-left: 4px solid #e53e3e;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 500;
+  .messages-container {
     margin-bottom: 20px;
-    animation: slideIn 0.3s ease;
 
-    svg {
-      flex-shrink: 0;
-      stroke-width: 2.5;
+    .error-message,
+    .success-message {
+      padding: 16px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+
+      svg {
+        flex-shrink: 0;
+        stroke-width: 2.5;
+      }
+    }
+
+    .error-message {
+      background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+      color: #e53e3e;
+      border-left: 4px solid #e53e3e;
+    }
+
+    .success-message {
+      background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+      color: #22543d;
+      border-left: 4px solid #38a169;
     }
 
     @keyframes slideIn {
@@ -316,7 +329,8 @@
 
           .btn-edit,
           .btn-delete,
-          .btn-view {
+          .btn-view,
+          .btn-cart {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -367,6 +381,32 @@
             &:hover {
               transform: translateY(-2px);
               box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+            }
+          }
+
+          .btn-cart {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(34, 197, 94, 0.35);
+
+            &:hover:not(:disabled) {
+              background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+              transform: translateY(-2px);
+              box-shadow: 0 6px 16px rgba(22, 163, 74, 0.45);
+            }
+
+            .btn-spinner {
+              width: 14px;
+              height: 14px;
+              border: 2px solid rgba(255, 255, 255, 0.3);
+              border-top-color: white;
+              border-radius: 50%;
+              animation: spin 0.8s linear infinite;
+            }
+
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
             }
           }
 
@@ -509,7 +549,8 @@
             
             .btn-edit,
             .btn-delete,
-            .btn-view {
+            .btn-view,
+            .btn-cart {
               flex: 1;
               padding: 12px 14px;
             }
@@ -546,7 +587,8 @@
             
             .btn-edit,
             .btn-delete,
-            .btn-view {
+            .btn-view,
+            .btn-cart {
               width: 100%;
             }
           }

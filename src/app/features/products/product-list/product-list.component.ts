@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { ProductService } from '../../../core/services/product.service';
+import { CartService } from '../../../core/services/cart.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavigationService } from '../../../core/services/navigation.service';
 import { UiHelperService } from '../../../core/services/ui-helper.service';
@@ -19,6 +20,7 @@ import { UserRole } from '../../../core/models/user.model';
 })
 export class ProductListComponent implements OnInit {
   private productService = inject(ProductService);
+  private cartService = inject(CartService);
   private authService = inject(AuthService);
   public navigationService = inject(NavigationService);
   public uiHelper = inject(UiHelperService);
@@ -27,10 +29,12 @@ export class ProductListComponent implements OnInit {
   products: Product[] = [];
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
   currentUserRole: UserRole | null = null;
   isAdmin = false;
   isSeller = false;
   isCustomer = false;
+  addingToCart: Set<number> = new Set();
 
   ngOnInit(): void {
     const currentUser = this.authService.getCurrentUser();
@@ -127,5 +131,40 @@ export class ProductListComponent implements OnInit {
 
   viewProductDetails(productId: number): void {
     this.navigationService.goToProductDetails(productId);
+  }
+
+  addToCart(product: Product): void {
+    if (this.addingToCart.has(product.id)) return;
+    
+    this.addingToCart.add(product.id);
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.cartService.addToCart({ productId: product.id, quantity: 1 }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.successMessage = `"${product.name}" added to cart!`;
+          setTimeout(() => this.successMessage = '', 3000);
+        } else {
+          this.errorMessage = response.message || 'Failed to add to cart';
+        }
+        this.addingToCart.delete(product.id);
+      },
+      error: (error) => {
+        this.logger.httpError('Adding to cart', error);
+        this.errorMessage = error.error?.message || 'Failed to add to cart. Please try again.';
+        this.addingToCart.delete(product.id);
+      }
+    });
+  }
+
+  isAddingToCart(productId: number): boolean {
+    return this.addingToCart.has(productId);
+  }
+
+  canAddToCart(product: Product): boolean {
+    return this.isCustomer && 
+           product.status === ProductStatus.Approved && 
+           product.stockQuantity > 0;
   }
 }

@@ -1,7 +1,7 @@
 .product-details-container {
   min-height: 100vh;
   padding: 40px;
-  background: #f7fafc;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
 
   .back-navigation {
     margin-bottom: 24px;
@@ -10,15 +10,16 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 20px;
+      padding: 12px 24px;
       background: white;
       color: #4a5568;
       border: 2px solid #e2e8f0;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
       svg {
         stroke-width: 2.5;
@@ -28,25 +29,62 @@
         background: #f7fafc;
         border-color: #667eea;
         color: #667eea;
+        transform: translateX(-4px);
       }
     }
   }
 
-  .error-message {
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-    color: #e53e3e;
-    border-radius: 12px;
-    border-left: 4px solid #e53e3e;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 500;
+  .messages-container {
     margin-bottom: 24px;
 
-    svg {
-      flex-shrink: 0;
-      stroke-width: 2.5;
+    .error-message,
+    .success-message {
+      padding: 16px 20px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+
+      svg {
+        flex-shrink: 0;
+        stroke-width: 2.5;
+      }
+    }
+
+    .error-message {
+      background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+      color: #c53030;
+      border-left: 4px solid #e53e3e;
+    }
+
+    .success-message {
+      background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+      color: #22543d;
+      border-left: 4px solid #38a169;
+
+      .view-cart-link {
+        margin-left: auto;
+        padding: 8px 16px;
+        background: white;
+        color: #38a169;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #22543d;
+          color: white;
+        }
+      }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   }
 
@@ -204,10 +242,159 @@
             font-size: 15px;
             font-weight: 600;
 
+            &.in-stock {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              color: #38a169;
+
+              svg {
+                stroke: #38a169;
+                stroke-width: 3;
+              }
+            }
+
+            &.out-of-stock-text {
+              color: #e53e3e;
+            }
+
             &.low-stock {
               color: #e53e3e;
             }
           }
+        }
+      }
+
+      .add-to-cart-section {
+        padding: 24px;
+        background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf8 100%);
+        border-radius: 16px;
+        border: 2px solid #e2e8f0;
+
+        .quantity-selector {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+
+          .qty-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #4a5568;
+          }
+
+          .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+            .qty-btn {
+              width: 40px;
+              height: 40px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: #f7fafc;
+              border: 2px solid #e2e8f0;
+              border-radius: 10px;
+              cursor: pointer;
+              transition: all 0.2s ease;
+
+              svg {
+                stroke: #4a5568;
+                stroke-width: 3;
+              }
+
+              &:hover:not(:disabled) {
+                background: #667eea;
+                border-color: #667eea;
+
+                svg {
+                  stroke: white;
+                }
+              }
+
+              &:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+              }
+            }
+
+            .qty-value {
+              min-width: 48px;
+              text-align: center;
+              font-size: 20px;
+              font-weight: 700;
+              color: #1a202c;
+            }
+          }
+        }
+
+        .btn-add-to-cart {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          padding: 18px 32px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          border-radius: 14px;
+          font-size: 18px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+
+          svg {
+            stroke-width: 2.5;
+          }
+
+          .loading-spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          }
+
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+
+          &:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(102, 126, 234, 0.5);
+          }
+
+          &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+          }
+        }
+      }
+
+      .out-of-stock-banner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 20px;
+        background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+        border-radius: 14px;
+        color: #c53030;
+        font-weight: 600;
+        font-size: 16px;
+
+        svg {
+          stroke-width: 2.5;
         }
       }
 

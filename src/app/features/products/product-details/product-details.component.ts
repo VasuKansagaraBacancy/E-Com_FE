@@ -1,8 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../core/components/header/header.component';
 import { ProductService } from '../../../core/services/product.service';
+import { CartService } from '../../../core/services/cart.service';
 import { NavigationService } from '../../../core/services/navigation.service';
 import { UiHelperService } from '../../../core/services/ui-helper.service';
 import { LoggerService } from '../../../core/services/logger.service';
@@ -13,13 +15,14 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-product-details',
   standalone: true,
-  imports: [CommonModule, RouterLink, HeaderComponent],
+  imports: [CommonModule, RouterLink, FormsModule, HeaderComponent],
   templateUrl: './product-details.component.html',
   styleUrl: './product-details.component.scss'
 })
 export class ProductDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
+  private cartService = inject(CartService);
   private authService = inject(AuthService);
   public navigationService = inject(NavigationService);
   public uiHelper = inject(UiHelperService);
@@ -28,7 +31,10 @@ export class ProductDetailsComponent implements OnInit {
   product: Product | null = null;
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
   productId: number | null = null;
+  quantity = 1;
+  isAddingToCart = false;
   
   isAdmin = false;
   isSeller = false;
@@ -101,6 +107,46 @@ export class ProductDetailsComponent implements OnInit {
     this.canEdit = false;
   }
 
+  addToCart(): void {
+    if (!this.product || this.quantity < 1) return;
+
+    this.isAddingToCart = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.cartService.addToCart({
+      productId: this.product.id,
+      quantity: this.quantity
+    }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.successMessage = `Added ${this.quantity} ${this.product!.name} to cart!`;
+          setTimeout(() => this.successMessage = '', 3000);
+        } else {
+          this.errorMessage = response.message || 'Failed to add to cart';
+        }
+        this.isAddingToCart = false;
+      },
+      error: (error) => {
+        this.logger.httpError('Adding to cart', error);
+        this.errorMessage = error.error?.message || 'Failed to add to cart. Please try again.';
+        this.isAddingToCart = false;
+      }
+    });
+  }
+
+  incrementQuantity(): void {
+    if (this.product && this.quantity < this.product.stockQuantity) {
+      this.quantity++;
+    }
+  }
+
+  decrementQuantity(): void {
+    if (this.quantity > 1) {
+      this.quantity--;
+    }
+  }
+
   getStatusBadgeClass(): string {
     if (!this.product) return 'status-badge';
     return this.uiHelper.getProductStatusBadgeClass(this.product.status);
@@ -115,5 +161,8 @@ export class ProductDetailsComponent implements OnInit {
       this.navigationService.goToProductEdit(this.productId);
     }
   }
-}
 
+  goToCart(): void {
+    this.navigationService.goToDashboard();
+  }
+}
