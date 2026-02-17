@@ -24,3 +24,4 @@ export interface PaginatedResponse<T> {
   errors?: string[];
 }
 
+

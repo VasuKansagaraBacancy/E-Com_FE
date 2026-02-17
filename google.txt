@@ -1,0 +1,334 @@
+# Google OAuth Authentication - Implementation Summary
+
+## Overview
+Google OAuth authentication has been implemented on the backend. Users can now sign in with Google, and the system will automatically link Google accounts to existing email accounts if the email matches.
+
+## Backend Changes Summary
+
+### 1. Database Schema Updates
+- Added `Provider` field (nullable string) - tracks authentication method: "Email", "Google", or "Email,Google"
+- Added `GoogleId` field (nullable string) - stores Google user ID
+- Made `PasswordHash` nullable - Google users don't have passwords
+
+### 2. New API Endpoints
+
+#### Initiate Google OAuth
+```
+GET /api/auth/google
+```
+**Description:** Initiates Google OAuth flow. Redirects user to Google login page.
+
+**Response:** HTTP 302 Redirect to Google OAuth
+
+**Frontend Usage:**
+```html
+<a href="http://your-api-url/api/auth/google">Sign in with Google</a>
+```
+or
+```javascript
+window.location.href = 'http://your-api-url/api/auth/google';
+```
+
+#### Google OAuth Callback
+```
+GET /api/auth/google/callback
+```
+**Description:** Handles Google OAuth callback. This endpoint is called by Google after user authentication.
+
+**Response:** HTTP 302 Redirect to frontend with token in query parameters
+
+**Redirect URL Format (Success):**
+```
+http://your-frontend-url/auth/callback?token={JWT_TOKEN}&email={EMAIL}&firstName={FIRST_NAME}&lastName={LAST_NAME}&role={ROLE}
+```
+
+**Redirect URL Format (Error):**
+```
+http://your-frontend-url/auth/callback?error={ERROR_MESSAGE}
+```
+
+### 3. Existing Endpoints (Still Work)
+- `POST /api/auth/register` - Email/password registration (now sets Provider = "Email")
+- `POST /api/auth/login` - Email/password login (validates user has password)
+- `POST /api/auth/forgot-password` - Password reset
+- `POST /api/auth/reset-password` - Reset password with OTP
+
+## Frontend Implementation Guide
+
+### Step 1: Add "Sign in with Google" Button
+
+```html
+<button (click)="signInWithGoogle()">Sign in with Google</button>
+```
+
+### Step 2: Implement Google Sign-In Function
+
+```typescript
+signInWithGoogle() {
+  // Redirect to backend Google OAuth endpoint
+  window.location.href = 'http://your-api-url/api/auth/google';
+}
+```
+
+### Step 3: Create Callback Handler Route
+
+Create a route in your Angular app to handle the callback:
+
+**Route Configuration:**
+```typescript
+{ path: 'auth/callback', component: AuthCallbackComponent }
+```
+
+### Step 4: Implement Callback Component
+
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+
+@Component({
+  selector: 'app-auth-callback',
+  template: '<div>Processing authentication...</div>'
+})
+export class AuthCallbackComponent implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      // Check for error
+      if (params['error']) {
+        console.error('Authentication error:', params['error']);
+        // Redirect to login with error message
+        this.router.navigate(['/login'], {
+          queryParams: { error: params['error'] }
+        });
+        return;
+      }
+
+      // Check for token (success)
+      if (params['token']) {
+        // Store token
+        localStorage.setItem('token', params['token']);
+        
+        // Store user info (optional)
+        const userInfo = {
+          email: params['email'],
+          firstName: params['firstName'],
+          lastName: params['lastName'],
+          role: params['role']
+        };
+        localStorage.setItem('user', JSON.stringify(userInfo));
+
+        // Redirect to dashboard/home
+        this.router.navigate(['/dashboard']);
+      } else {
+        // No token received
+        this.router.navigate(['/login'], {
+          queryParams: { error: 'Authentication failed' }
+        });
+      }
+    });
+  }
+}
+```
+
+### Step 5: Update Your Auth Service
+
+If you have an auth service, update it to handle Google authentication:
+
+```typescript
+export class AuthService {
+  // ... existing methods ...
+
+  signInWithGoogle(): void {
+    window.location.href = `${this.apiUrl}/api/auth/google`;
+  }
+
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  getUser(): any {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+}
+```
+
+## Authentication Flow Diagram
+
+```
+User clicks "Sign in with Google"
+    ↓
+Frontend redirects to: GET /api/auth/google
+    ↓
+Backend redirects to Google OAuth page
+    ↓
+User authenticates with Google
+    ↓
+Google redirects to: GET /api/auth/google/callback
+    ↓
+Backend processes authentication:
+  - Extracts user info from Google
+  - Checks if user exists by email
+  - If exists: Links Google account
+  - If not: Creates new user
+  - Generates JWT token
+    ↓
+Backend redirects to frontend with token:
+  /auth/callback?token=...&email=...&firstName=...&lastName=...&role=...
+    ↓
+Frontend extracts token and stores it
+    ↓
+User is authenticated and redirected to dashboard
+```
+
+## Account Linking Behavior
+
+### Scenario 1: New User (Email doesn't exist)
+- Creates new user with Provider = "Google"
+- Sets PasswordHash = null
+- Extracts name from Google profile
+- Sets default Role = "Customer"
+- Returns JWT token
+
+### Scenario 2: Existing Email User
+- Finds existing user by email
+- Updates user with GoogleId
+- Updates Provider to "Email,Google" (supports both methods)
+- Returns JWT token
+- User can now sign in with either email/password OR Google
+
+### Scenario 3: Existing Google User
+- Finds existing user by email
+- Updates GoogleId if different
+- Returns JWT token
+
+## Error Handling
+
+The callback endpoint may redirect with an error parameter:
+```
+/auth/callback?error=Your account is inactive. Please contact support.
+```
+
+Frontend should handle these errors gracefully and display appropriate messages.
+
+## API Configuration
+
+### Backend Configuration Required
+Update `appsettings.json`:
+```json
+{
+  "GoogleOAuth": {
+    "ClientId": "your-google-client-id",
+    "ClientSecret": "your-google-client-secret"
+  },
+  "FrontendUrl": "http://localhost:49715"
+}
+```
+
+### Google Cloud Console Setup
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create OAuth 2.0 Client ID
+3. Set Authorized redirect URI:
+   - Development: `http://localhost:5000/api/auth/google/callback`
+   - Production: `https://your-api-domain/api/auth/google/callback`
+
+## Testing Checklist
+
+- [ ] "Sign in with Google" button redirects to Google
+- [ ] After Google authentication, user is redirected back
+- [ ] Token is extracted and stored correctly
+- [ ] User info is stored correctly
+- [ ] User is redirected to dashboard after successful auth
+- [ ] Error messages are displayed if authentication fails
+- [ ] Existing email users can link Google accounts
+- [ ] New users are created correctly with Google auth
+- [ ] JWT token works for authenticated requests
+
+## Example Frontend Integration
+
+### Complete Example Component
+
+```typescript
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from './auth.service';
+
+@Component({
+  selector: 'app-login',
+  template: `
+    <div>
+      <h2>Login</h2>
+      
+      <!-- Email/Password Login Form -->
+      <form (ngSubmit)="login()">
+        <input [(ngModel)]="email" placeholder="Email" />
+        <input [(ngModel)]="password" type="password" placeholder="Password" />
+        <button type="submit">Login</button>
+      </form>
+
+      <!-- Google Sign In Button -->
+      <button (click)="signInWithGoogle()">Sign in with Google</button>
+    </div>
+  `
+})
+export class LoginComponent {
+  email = '';
+  password = '';
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  login() {
+    // Existing email/password login logic
+    this.authService.login(this.email, this.password).subscribe(
+      response => {
+        // Handle success
+        this.router.navigate(['/dashboard']);
+      },
+      error => {
+        // Handle error
+        console.error('Login failed:', error);
+      }
+    );
+  }
+
+  signInWithGoogle() {
+    this.authService.signInWithGoogle();
+  }
+}
+```
+
+## Important Notes
+
+1. **CORS Configuration**: Backend CORS is configured for `http://localhost:4200` and `http://localhost:49715`. Update if your frontend runs on a different port.
+
+2. **Token Storage**: Store JWT token in localStorage or sessionStorage. Include it in Authorization header for protected API calls:
+   ```
+   Authorization: Bearer {token}
+   ```
+
+3. **Token Expiry**: JWT tokens expire after 24 hours (configurable in backend). Implement token refresh if needed.
+
+4. **Multiple Auth Methods**: Users can have both email/password and Google authentication. The system automatically links accounts when emails match.
+
+5. **Password Reset**: Google-authenticated users don't have passwords, so password reset is not applicable for Google-only accounts.
+
+## Support
+
+For questions or issues, contact the backend team. The implementation follows OAuth 2.0 standards and integrates seamlessly with the existing JWT authentication system.
+
