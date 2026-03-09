@@ -10,6 +10,18 @@ export enum OrderStatus {
 }
 
 /**
+ * Return status for an order item (from backend)
+ */
+export type ReturnStatus = 'None' | 'Requested' | 'Approved' | 'Rejected';
+
+/**
+ * Refund status for an order item (from backend).
+ * Backend sets this to "Initiated" when a return is approved.
+ * Admin can later change it to "Done" or "Refunded".
+ */
+export type RefundStatus = 'None' | 'Initiated' | 'Done' | 'Refunded';
+
+/**
  * Order Item model
  */
 export interface OrderItem {
@@ -19,6 +31,13 @@ export interface OrderItem {
   price: number;
   quantity: number;
   subTotal: number;
+  /** Return status: None | Requested | Approved | Rejected */
+  returnStatus?: ReturnStatus;
+  returnRequestedAt?: string | null;
+  returnResolvedAt?: string | null;
+  returnReason?: string | null;
+   /** Refund status: None | Initiated | Done | Refunded */
+  refundStatus?: RefundStatus;
 }
 
 /**
@@ -39,6 +58,11 @@ export interface Order {
   notes: string | null;
   createdAt: string;
   updatedAt: string | null;
+  /**
+   * Set when the order is marked as Delivered.
+   * Used together with product.returnPolicyDays to compute return window.
+   */
+  deliveredAt: string | null;
   orderItems: OrderItem[];
 }
 

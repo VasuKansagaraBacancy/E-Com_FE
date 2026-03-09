@@ -117,7 +117,7 @@ export const routes: Routes = [
       },
       {
         path: ':id',
-        loadComponent: () => import('./features/orders/order-list/order-list.component').then(m => m.OrderListComponent)
+        loadComponent: () => import('./features/orders/order-detail/order-detail.component').then(m => m.OrderDetailComponent)
       }
     ]
   },

@@ -9,7 +9,10 @@ export const VALIDATION = {
   PRODUCT_NAME_MAX_LENGTH: 200,
   PRODUCT_DESCRIPTION_MAX_LENGTH: 2000,
   PRICE_MIN: 0.01,
-  STOCK_MIN: 0
+  STOCK_MIN: 0,
+  /** Return policy: 0 = no returns, max 365 days after delivery */
+  RETURN_POLICY_DAYS_MIN: 0,
+  RETURN_POLICY_DAYS_MAX: 365
 } as const;
 
 /**
@@ -47,6 +50,7 @@ export const ROUTES = {
     DETAILS: (id: number) => `/products/${id}`
   }
 } as const;
+
 
 
 

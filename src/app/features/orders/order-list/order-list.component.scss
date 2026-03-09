@@ -230,6 +230,62 @@
       }
     }
 
+    .order-return-status {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      background: #fffbeb;
+      border-radius: 10px;
+      border-left: 4px solid #f59e0b;
+      font-size: 13px;
+
+      .return-label {
+        font-weight: 600;
+        color: #92400e;
+      }
+
+      .return-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 12px;
+
+        &.requested {
+          background: #fef3c7;
+          color: #92400e;
+        }
+
+        &.approved {
+          background: #d1fae5;
+          color: #065f46;
+        }
+
+        &.rejected {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
+
+        &.refund-initiated {
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        &.refund-done {
+          background: #d1fae5;
+          color: #065f46;
+        }
+
+        &.refund-refunded {
+          background: #ede9fe;
+          color: #5b21b6;
+        }
+      }
+    }
+
     .order-shipping {
       display: flex;
       align-items: center;

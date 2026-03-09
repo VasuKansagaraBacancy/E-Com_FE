@@ -63,6 +63,128 @@
     <p>Loading orders...</p>
   </div>
 
+  <!-- Pending return requests (Admin / Seller can approve or reject) -->
+  <section class="returns-section" *ngIf="!isLoading && pendingReturns.length > 0">
+    <h2 class="returns-heading">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+      Pending return requests ({{ pendingReturns.length }})
+    </h2>
+    <div class="returns-table-wrapper">
+      <table class="returns-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Reason</th>
+            <th>Requested</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of pendingReturns">
+            <td class="order-id-cell">#{{ row.order.id }}</td>
+            <td class="customer-cell">
+              <span class="customer-name">{{ row.order.userName }}</span>
+              <span class="customer-email">{{ row.order.userEmail }}</span>
+            </td>
+            <td class="product-cell">{{ row.item.productName }} ×{{ row.item.quantity }}</td>
+            <td class="reason-cell">{{ row.item.returnReason || '—' }}</td>
+            <td class="date-cell">{{ row.item.returnRequestedAt ? uiHelper.formatDateShort(row.item.returnRequestedAt) : '—' }}</td>
+            <td class="actions-cell">
+              <div class="return-actions">
+                <button
+                  type="button"
+                  class="btn-approve"
+                  [disabled]="resolvingItemId === row.item.id"
+                  (click)="resolveReturn(row, true)"
+                  title="Approve return">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  class="btn-reject"
+                  [disabled]="resolvingItemId === row.item.id"
+                  (click)="resolveReturn(row, false)"
+                  title="Reject return">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                  </svg>
+                  Reject
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Refund status updates (Admin only): only when returnStatus is Approved -->
+  <section class="returns-section refunds-section" *ngIf="!isLoading && refundItems.length > 0">
+    <h2 class="returns-heading">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="12" y1="1" x2="12" y2="23"></line>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+      </svg>
+      Refund status (Approved returns) ({{ refundItems.length }})
+    </h2>
+    <p class="returns-sub">Backend sets refundStatus to <b>Initiated</b> when a return is approved. Admin should mark it as <b>Refunded</b> once the money is actually refunded.</p>
+    <div class="returns-table-wrapper">
+      <table class="returns-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Refund status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of refundItems">
+            <td class="order-id-cell">#{{ row.order.id }}</td>
+            <td class="customer-cell">
+              <span class="customer-name">{{ row.order.userName }}</span>
+              <span class="customer-email">{{ row.order.userEmail }}</span>
+            </td>
+            <td class="product-cell">{{ row.item.productName }} ×{{ row.item.quantity }}</td>
+            <td class="refund-status-cell">
+              <span class="return-pill refund-initiated" *ngIf="(row.item.refundStatus || 'Initiated') === 'Initiated'">Initiated</span>
+              <span class="return-pill refund-done" *ngIf="row.item.refundStatus === 'Done'">Done</span>
+              <span class="return-pill refund-refunded" *ngIf="row.item.refundStatus === 'Refunded'">Refunded</span>
+              <span class="no-returns" *ngIf="row.item.refundStatus === 'None'">None</span>
+            </td>
+            <td class="actions-cell">
+              <div class="return-actions">
+                <button
+                  type="button"
+                  class="btn-mark-refunded"
+                  [disabled]="updatingRefundItemId === row.item.id || row.item.refundStatus === 'Refunded'"
+                  (click)="updateRefundStatus(row, 'Refunded')"
+                  title="Mark refund as Refunded">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 1v22"></path>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                  Mark Refunded
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <div class="orders-table-container" *ngIf="!isLoading">
     <table class="orders-table" *ngIf="filteredOrders.length > 0">
       <thead>
@@ -72,6 +194,7 @@
           <th>Items</th>
           <th>Total</th>
           <th>Status</th>
+          <th>Returns</th>
           <th>Date</th>
           <th>Actions</th>
         </tr>
@@ -102,6 +225,29 @@
           </td>
           <td class="status-cell">
             <span [ngClass]="getStatusClass(order.status)">{{ order.status }}</span>
+          </td>
+          <td class="returns-cell">
+            <span class="no-returns" *ngIf="!hasAnyReturn(order) && getOrderRefundSummary(order).initiated === 0 && getOrderRefundSummary(order).done === 0 && getOrderRefundSummary(order).refunded === 0">—</span>
+            <div class="returns-summary" *ngIf="hasAnyReturn(order) || getOrderRefundSummary(order).initiated > 0 || getOrderRefundSummary(order).done > 0 || getOrderRefundSummary(order).refunded > 0">
+              <span class="return-pill requested" *ngIf="getOrderReturnSummary(order).requested > 0">
+                {{ getOrderReturnSummary(order).requested }} Requested
+              </span>
+              <span class="return-pill approved" *ngIf="getOrderReturnSummary(order).approved > 0">
+                {{ getOrderReturnSummary(order).approved }} Approved
+              </span>
+              <span class="return-pill rejected" *ngIf="getOrderReturnSummary(order).rejected > 0">
+                {{ getOrderReturnSummary(order).rejected }} Rejected
+              </span>
+              <span class="return-pill refund-initiated" *ngIf="getOrderRefundSummary(order).initiated > 0">
+                {{ getOrderRefundSummary(order).initiated }} Refund Initiated
+              </span>
+              <span class="return-pill refund-done" *ngIf="getOrderRefundSummary(order).done > 0">
+                {{ getOrderRefundSummary(order).done }} Refund Done
+              </span>
+              <span class="return-pill refund-refunded" *ngIf="getOrderRefundSummary(order).refunded > 0">
+                {{ getOrderRefundSummary(order).refunded }} Refunded
+              </span>
+            </div>
           </td>
           <td class="date-cell">
             {{ uiHelper.formatDateShort(order.createdAt) }}

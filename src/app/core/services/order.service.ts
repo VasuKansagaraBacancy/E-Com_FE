@@ -49,4 +49,42 @@ export class OrderService {
   updateOrderStatus(request: UpdateOrderStatusRequest): Observable<ApiResponse<any>> {
     return this.http.put<ApiResponse<any>>(`${this.apiUrl}/status`, request);
   }
+
+  /**
+   * Request a return for a specific order item (Customer).
+   * POST /api/order/return with body { orderItemId, reason }
+   */
+  requestReturn(orderItemId: number, reason: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/return`, {
+      orderItemId,
+      reason
+    });
+  }
+
+  /**
+   * Resolve a return request (Admin or Seller).
+   * POST /api/order/return/resolve with body { orderItemId, approved, note }
+   */
+  resolveReturn(orderItemId: number, approved: boolean, note: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/return/resolve`, {
+      orderItemId,
+      approved,
+      note
+    });
+  }
+
+  /**
+   * Update refund status (Admin only).
+   * PUT /api/order/return/refund-status with body { orderItemId, refundStatus }
+   * Valid refundStatus: "None" | "Initiated" | "Done" | "Refunded"
+   */
+  updateRefundStatus(
+    orderItemId: number,
+    refundStatus: 'None' | 'Initiated' | 'Done' | 'Refunded'
+  ): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/return/refund-status`, {
+      orderItemId,
+      refundStatus
+    });
+  }
 }

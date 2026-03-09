@@ -96,6 +96,28 @@
         </span>
       </div>
 
+      <div class="order-return-status" *ngIf="hasAnyReturn(order)">
+        <span class="return-label">Return / Refund:</span>
+        <span class="return-badge requested" *ngIf="getOrderReturnSummary(order).requested > 0">
+          {{ getOrderReturnSummary(order).requested }} Requested
+        </span>
+        <span class="return-badge approved" *ngIf="getOrderReturnSummary(order).approved > 0">
+          {{ getOrderReturnSummary(order).approved }} Approved
+        </span>
+        <span class="return-badge rejected" *ngIf="getOrderReturnSummary(order).rejected > 0">
+          {{ getOrderReturnSummary(order).rejected }} Rejected
+        </span>
+        <span class="return-badge refund-initiated" *ngIf="getOrderReturnSummary(order).refundInitiated > 0">
+          {{ getOrderReturnSummary(order).refundInitiated }} Refund initiated
+        </span>
+        <span class="return-badge refund-done" *ngIf="getOrderReturnSummary(order).refundDone > 0">
+          {{ getOrderReturnSummary(order).refundDone }} Refund completed
+        </span>
+        <span class="return-badge refund-refunded" *ngIf="getOrderReturnSummary(order).refundRefunded > 0">
+          {{ getOrderReturnSummary(order).refundRefunded }} Return refunded
+        </span>
+      </div>
+
       <div class="order-shipping" *ngIf="order.shippingAddress">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -109,6 +131,12 @@
           <span class="label">Total:</span>
           <span class="value">{{ uiHelper.formatPrice(order.totalAmount) }}</span>
         </div>
+        <a [routerLink]="['/orders', order.id]" class="btn-view-details">
+          View Details
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
       </div>
     </div>
   </div>

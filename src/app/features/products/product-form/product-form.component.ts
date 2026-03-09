@@ -46,7 +46,15 @@ export class ProductFormComponent implements OnInit {
       price: ['', [Validators.required, Validators.min(VALIDATION.PRICE_MIN)]],
       stockQuantity: ['', [Validators.required, Validators.min(VALIDATION.STOCK_MIN)]],
       imageUrl: ['', [Validators.required]],
-      categoryId: ['', [Validators.required]]
+      categoryId: ['', [Validators.required]],
+      returnPolicyDays: [
+        0,
+        [
+          Validators.required,
+          Validators.min(VALIDATION.RETURN_POLICY_DAYS_MIN),
+          Validators.max(VALIDATION.RETURN_POLICY_DAYS_MAX)
+        ]
+      ]
     });
   }
 
@@ -95,7 +103,8 @@ export class ProductFormComponent implements OnInit {
             price: product.price,
             stockQuantity: product.stockQuantity,
             imageUrl: product.imageUrl,
-            categoryId: product.categoryId
+            categoryId: product.categoryId,
+            returnPolicyDays: product.returnPolicyDays ?? 0
           });
         } else {
           this.errorMessage = response.message || 'Failed to load product';
@@ -125,9 +134,10 @@ export class ProductFormComponent implements OnInit {
     this.successMessage = '';
 
     const formValue = this.productForm.value;
-    
+    const returnDays = Number(formValue.returnPolicyDays) ?? 0;
+
     if (this.isEditMode && this.productId) {
-      const updateRequest: UpdateProductRequest = formValue;
+      const updateRequest: UpdateProductRequest = { ...formValue, returnPolicyDays: returnDays };
       this.productService.updateProduct(this.productId, updateRequest).subscribe({
         next: (response) => {
           if (response.success) {
@@ -153,7 +163,7 @@ export class ProductFormComponent implements OnInit {
         }
       });
     } else {
-      const createRequest: CreateProductRequest = formValue;
+      const createRequest: CreateProductRequest = { ...formValue, returnPolicyDays: returnDays };
       this.productService.createProduct(createRequest).subscribe({
         next: (response) => {
           if (response.success) {
@@ -194,6 +204,7 @@ export class ProductFormComponent implements OnInit {
   get stockQuantity() { return this.productForm.get('stockQuantity'); }
   get imageUrl() { return this.productForm.get('imageUrl'); }
   get categoryId() { return this.productForm.get('categoryId'); }
+  get returnPolicyDays() { return this.productForm.get('returnPolicyDays'); }
 
   goBack(): void {
     this.navigationService.goToDashboard();

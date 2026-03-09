@@ -22,6 +22,11 @@ export interface Product {
   imageUrl: string;
   categoryId: number;
   categoryName: string;
+  /**
+   * Number of days after delivery during which user can request a return.
+   * 0 = no returns allowed.
+   */
+  returnPolicyDays: number;
   createdByUserId: number;
   createdByEmail: string;
   status: ProductStatus;
@@ -40,6 +45,8 @@ export interface CreateProductRequest {
   stockQuantity: number;
   imageUrl: string;
   categoryId: number;
+  /** Number of days after delivery during which returns are allowed (0–365). 0 = no returns. */
+  returnPolicyDays: number;
 }
 
 export interface UpdateProductRequest {
@@ -49,6 +56,8 @@ export interface UpdateProductRequest {
   stockQuantity: number;
   imageUrl: string;
   categoryId: number;
+  /** Number of days after delivery during which returns are allowed (0–365). 0 = no returns. */
+  returnPolicyDays: number;
 }
 
 export interface CreateCategoryRequest {
