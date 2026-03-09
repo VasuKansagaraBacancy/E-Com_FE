@@ -22,7 +22,7 @@ import { HeaderComponent } from '../../../core/components/header/header.componen
               <line x1="9" y1="3" x2="9" y2="21"></line>
               <line x1="3" y1="9" x2="21" y2="9"></line>
             </svg>
-            <h3>My Products</h3>
+            <h3>Products</h3>
             <p>View and manage your products</p>
           </a>
           <a routerLink="/products/create" class="action-card">
