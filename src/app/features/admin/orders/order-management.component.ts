@@ -82,8 +82,14 @@ export class OrderManagementComponent implements OnInit {
       for (const item of order.orderItems) {
         if (item.returnStatus === 'Requested') {
           pending.push({ order, item });
-        } else if (item.returnStatus === 'Approved') {
-          // Backend sets refundStatus to Initiated when approved. Admin can update to Done/Refunded.
+        } else if (
+          item.returnStatus === 'Approved' &&
+          (item.refundStatus === undefined ||
+            item.refundStatus === 'None' ||
+            item.refundStatus === 'Initiated' ||
+            item.refundStatus === 'Done')
+        ) {
+          // Show in refund list only while refund is still pending; hide once marked Refunded.
           refunds.push({ order, item });
         }
       }

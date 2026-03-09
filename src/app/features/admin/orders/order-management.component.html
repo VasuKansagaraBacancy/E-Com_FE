@@ -230,22 +230,22 @@
             <span class="no-returns" *ngIf="!hasAnyReturn(order) && getOrderRefundSummary(order).initiated === 0 && getOrderRefundSummary(order).done === 0 && getOrderRefundSummary(order).refunded === 0">—</span>
             <div class="returns-summary" *ngIf="hasAnyReturn(order) || getOrderRefundSummary(order).initiated > 0 || getOrderRefundSummary(order).done > 0 || getOrderRefundSummary(order).refunded > 0">
               <span class="return-pill requested" *ngIf="getOrderReturnSummary(order).requested > 0">
-                {{ getOrderReturnSummary(order).requested }} Requested
+                Requested
               </span>
               <span class="return-pill approved" *ngIf="getOrderReturnSummary(order).approved > 0">
-                {{ getOrderReturnSummary(order).approved }} Approved
+                Approved
               </span>
               <span class="return-pill rejected" *ngIf="getOrderReturnSummary(order).rejected > 0">
-                {{ getOrderReturnSummary(order).rejected }} Rejected
+                Rejected
               </span>
               <span class="return-pill refund-initiated" *ngIf="getOrderRefundSummary(order).initiated > 0">
-                {{ getOrderRefundSummary(order).initiated }} Refund Initiated
+                Refund Initiated
               </span>
               <span class="return-pill refund-done" *ngIf="getOrderRefundSummary(order).done > 0">
-                {{ getOrderRefundSummary(order).done }} Refund Done
+                Refund Done
               </span>
               <span class="return-pill refund-refunded" *ngIf="getOrderRefundSummary(order).refunded > 0">
-                {{ getOrderRefundSummary(order).refunded }} Refunded
+                Refunded
               </span>
             </div>
           </td>
