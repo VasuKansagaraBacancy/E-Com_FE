@@ -5,7 +5,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/browser/index.html"
+      "dest": "/index.html"
     }
   ]
 }
