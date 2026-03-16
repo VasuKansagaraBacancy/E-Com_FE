@@ -3,7 +3,7 @@ export const environment = {
   // Production backend for deployed frontend
   apiUrl: 'https://ecombe.runasp.net',
   // Google OAuth Client ID
-  googleClientId: '867848949678-4qjhet7k1vqnpeq88f29crmchds1amri.apps.googleusercontent.com'
+  googleClientId: '782291357726-5ouc3kdg9b47so9tl6cap2vf5jrb7e84.apps.googleusercontent.com'
 };
 
 
